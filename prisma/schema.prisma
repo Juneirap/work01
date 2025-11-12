@@ -5,11 +5,51 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+enum size {
+  S
+  M
+  L
+  XL
+  XXL
+  SIZE_3XL @map("3XL")
+}
+
+enum category {
+  t_shirt //เสื้อยืด
+  shirt //เสื้อเชิ้ต
+  pants //กางเกง
+  sweatshirt //เสื้อสเวตเตอร์
+  hoodie //เสื้อฮู้ดดี้
+  dress //ชุดเดรส
+  skirt //กระโปรง
+  jacket //เสื้อแจ็คเก็ต
+  socks //ถุงเท้า
+  shoes //รองเท้า
+  accessories //เครื่องประดับ
+}
+
+enum typebuy {
+  buy //ซื้อ-ขาย
+  rent //เช่า
+}
+
+model store {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  image       String
+  name        String
+  size        String
+  price       Float
+  category    String //หมวดหมู่(เสื้อผ้า)
+  typebuy     String //ประเภทการซื้อ-ขาย
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

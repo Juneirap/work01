@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "prisma.config.bak"  ],
+, "prisma.config.bak", "src/lib/prisma.js", "src/app/api/stores/route.js", "src/app/api/stores/[id]/route.js"  ],
   "exclude": ["node_modules"]
 }
