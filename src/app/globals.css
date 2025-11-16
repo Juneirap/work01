@@ -1,17 +1,51 @@
 @import "tailwindcss";
 
+/* ---------- Base color variables (sRGB fallback) ---------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* โทนหลัก */
+  --cream: #FDF4E3;         /* พื้นหลังหลัก (อัปเดตเป็นค่าที่ใช้งานจริง) */
+  --ink: #2B2B2B;           /* ตัวอักษร/ไอคอน */
+
+  /* ส่วนที่เผื่อไว้ในโปรเจกต์ */
+  --divider: #CDBE9F;
+  --login-yellow: #FFB84A;
+  --login-border: #AD7A17;
+
+  /* map ไปยังตัวแปรที่ธีมใช้อยู่ */
+  --background: var(--cream);
+  --foreground: var(--ink);
+
+  /* ฟอนต์ (จาก next/font จะอัด class ที่เซ็ตตัวแปรพวกนี้ให้ที่ <html>) */
+  --font-heading: "Kanit", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", sans-serif;
+  --font-body: "Noto Sans Thai", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+/* ---------- Display-P3 enhancement (อุปกรณ์ที่รองรับเท่านั้น) ---------- */
+@supports (color: color(display-p3 1 1 1)) {
+  :root {
+    --cream: color(display-p3 0.992 0.957 0.890); /* ใกล้เคียง #FDF4E3 */
+    --ink: color(display-p3 0.165 0.165 0.165);
+    --divider: color(display-p3 0.788 0.745 0.625);
+    --login-yellow: color(display-p3 0.995 0.745 0.305);
+    --login-border: color(display-p3 0.68 0.48 0.10);
+
+    --background: var(--cream);
+    --foreground: var(--ink);
+  }
+}
+
+/* ---------- Tailwind theme bindings ---------- */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* ถ้าโปรเจกต์ยังใช้ Geist ในบางส่วน จะยังคงตัวแปรนี้ไว้ได้ */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* ---------- Dark mode (ถ้าต้องการให้สลับเป็นโทนมืด) ---------- */
+/* ถ้าอยากคงครีมตลอด ให้ลบบล็อกนี้ทิ้งได้ */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +53,44 @@
   }
 }
 
+/* ---------- Global element styles ---------- */
+html, body {
+  min-height: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* ผูกฟอนต์เนื้อความกับตัวแปรจาก next/font (fallback เผื่อยังไม่โหลด) */
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ใช้ฟอนต์หัวข้อให้กับ heading elements */
+h1, h2, h3, h4, h5, h6, .heading {
+  font-family: var(--font-heading);
+  letter-spacing: 0.2px;
+}
+
+/* ควบคุมตัวเลขราคาให้เรียงตรงคอลัมน์ */
+.price, .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* เส้นคั่นที่เข้ากับธีม */
+.hr,
+.border-divider { border-color: var(--divider); }
+
+/* ปุ่มเหลือง (เผื่อใช้ร่วมกับ navbar) */
+.btn-login {
+  background: var(--login-yellow);
+  border: 1px solid var(--login-border);
+  color: var(--ink);
+}
+
+/* ไฮไลต์เวลา select ข้อความ */
+::selection {
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
 }

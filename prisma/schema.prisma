@@ -53,3 +53,22 @@ model store {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Role {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+  users users[]
+}
+
+model users {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String   @unique
+  phonenumber String   @unique
+  role        Role     @relation(fields: [roleId], references: [id])
+  roleId      String   @db.ObjectId
+  profile     String
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
