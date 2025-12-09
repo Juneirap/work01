@@ -1,300 +1,303 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Trash2, Plus, Minus, CheckCircle, ShoppingBag } from "lucide-react";
+import { Button } from "../components/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/card";
+import { Badge } from "../components/badge";
+import { ImageWithFallback } from "../components/ImageWithFallback";
+import { toast } from "sonner";
+
+
+// ⭐ เพิ่ม Navbar
 import Navbar from "../components/navbar";
 
-/* ---------- ตัวอย่างข้อมูลสินค้า (mock) ---------- */
-const INITIAL_ITEMS = [
-  {
-    id: "tee-sienna-lg",
-    name: "Manfinity Homme เสื้อเชิ้ต แขนยาว คอปก สีพื้น",
-    color: "black",
-    size: "XL",
-    price: 32,
-    qty: 1,
-    status: { type: "in-stock", text: "In stock" },
-    image:
-      "https://img5.pic.in.th/file/secure-sv1/Screenshot-2025-11-12-222356.png",
-  },
-];
+export default function CartPage({
+  cart = [],
+  rentals = [],
+  removeFromCart,
+  updateCartQuantity,
+  rentItem,
+  returnRental,
+}) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("cart");
 
-const TAX_RATE = 0.084; // 8.4%
-const SHIPPING_FLAT = 5;
+  const totalPrice = cart.reduce((sum, item) => {
+    const price = item.isRented
+      ? (item.price * (item.rentalDays || 3)) / 10
+      : item.price;
+    return sum + price * item.quantity;
+  }, 0);
 
-const money = (n) =>
-  n.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-export default function CartPage() {
-  const [items, setItems] = useState(INITIAL_ITEMS);
-
-  const subtotal = useMemo(
-    () => items.reduce((sum, it) => sum + it.price * it.qty, 0),
-    [items]
-  );
-  const shipping = items.length > 0 ? SHIPPING_FLAT : 0;
-  const tax = +(subtotal * TAX_RATE).toFixed(2);
-  const total = +(subtotal + shipping + tax).toFixed(2);
-
-  const updateQty = (id, qty) =>
-    setItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, qty: Number(qty) } : it))
-    );
-
-  const removeItem = (id) =>
-    setItems((prev) => prev.filter((it) => it.id !== id));
+  const totalDeposit = cart
+    .filter((item) => item.isRented)
+    .reduce((sum, item) => sum + (item.deposit || item.price * 0.5) * item.quantity, 0);
 
   return (
-    <div>
+    <>
+      {/* ⭐ Navbar อยู่ด้านบนสุด */}
       <Navbar />
-      {/* BG สี FDF4E3 + รูปจาง ๆ ทั้งหน้า */}
-      <div
-        className="relative min-h-screen"
-        style={{ backgroundColor: "#FDF4E3" }}
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-center bg-cover opacity-10"
-          style={{
-            backgroundImage:
-              "url('https://img5.pic.in.th/file/secure-sv1/0222379eb5ad184e2d09ebf660e9fb17.jpg')",
-          }}
-        />
-        <div className="relative">
-          <main className="mx-auto max-w-6xl px-4 py-8">
-            <h1 className="mb-6 text-3xl text-yellow-900 font-bold tracking-tight">
-              Shopping Cart
-            </h1>
 
-            {/* กล่องครอบทั้งส่วนสินค้า + สรุปราคา (สี #71BC20 แบบจาง 10%) */}
-            <div className="rounded-2xl  border border-[#998767]/20 border-t-4 border-b-3 bg-yellow-950/80 p-4 sm:p-6">
-              <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-                {/* LEFT: รายการสินค้า — การ์ดพอดีความสูง */}
-                <section className="space-y-6">
-                  {items.map((it, idx) => (
-                    <article
-                      key={it.id}
-                      className="relative rounded-2xl border border-black/10 bg-white p-4 sm:p-5 shadow-sm"
-                    >
-                      {/* ปุ่มลบ */}
-                      <button
-                        onClick={() => removeItem(it.id)}
-                        className="absolute right-4 top-4 text-gray-400 transition hover:text-gray-700"
-                        aria-label={`Remove ${it.name}`}
-                        title="Remove"
+      <div className="min-h-screen bg-[#FDF4E3]">
+        <div className="max-w-4xl mx-auto p-4 pb-24">
+
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.push("/main")}
+              className="text-[#134686] hover:bg-[#FEB21A]/20"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="h-6 w-6 text-[#134686]" />
+              <h1 className="text-2xl text-[#134686]">ตะกร้าสินค้า</h1>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2 mb-6 border-b-2 border-[#998767]/20">
+            <button
+              onClick={() => setActiveTab("cart")}
+              className={`px-4 py-2 ${activeTab === "cart" ? "border-b-2 border-[#134686] text-[#134686]" : "text-[#998767]"}`}
+            >
+              ตะกร้าสินค้า ({cart.length})
+            </button>
+
+            <button
+              onClick={() => setActiveTab("rentals")}
+              className={`px-4 py-2 ${activeTab === "rentals" ? "border-b-2 border-[#134686] text-[#134686]" : "text-[#998767]"}`}
+            >
+              รายการเช่า ({rentals.length})
+            </button>
+          </div>
+
+          {/* CART TAB */}
+          {activeTab === "cart" ? (
+            <>
+              {cart.length === 0 ? (
+                <div className="text-center py-20">
+                  <ShoppingBag className="h-24 w-24 text-[#998767]/30 mx-auto mb-6" />
+                  <p className="text-[#998767] mb-4">ตะกร้าสินค้าของคุณว่างเปล่า</p>
+                  <Button 
+                    onClick={() => router.push("/main")}
+                    className="bg-[#134686] hover:bg-[#0f3a6e]"
+                  >
+                    เริ่มช้อปปิ้ง
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 mb-6">
+                    {cart.map((item) => {
+                      const itemPrice = item.isRented
+                        ? (item.price * (item.rentalDays || 3)) / 10
+                        : item.price;
+
+                      const itemDeposit = item.isRented
+                        ? item.deposit || item.price * 0.5
+                        : 0;
+
+                      return (
+                        <Card key={item.id + "-" + item.isRented} className="border-[#998767]/20">
+                          <CardContent className="p-4">
+                            <div className="flex gap-4">
+                              <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden">
+                                <ImageWithFallback
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+
+                              <div className="flex-1">
+                                <div className="flex justify-between mb-2">
+                                  <div>
+                                    <h3 className="text-[#134686]">{item.name}</h3>
+                                    {item.isRented && (
+                                      <Badge className="bg-[#134686]/10 text-[#134686]">
+                                        เช่า {item.rentalDays} วัน
+                                      </Badge>
+                                    )}
+                                  </div>
+
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => removeFromCart(item.id, item.isRented)}
+                                    className="hover:bg-[#ED3F27]/10"
+                                  >
+                                    <Trash2 className="h-4 w-4 text-[#ED3F27]" />
+                                  </Button>
+                                </div>
+
+                                <div className="flex justify-between">
+                                  <div>
+                                    <p className="text-[#ED3F27]">฿{(itemPrice * item.quantity).toLocaleString()}</p>
+
+                                    {item.isRented && (
+                                      <p className="text-xs text-[#998767]">
+                                        + มัดจำ ฿{(itemDeposit * item.quantity).toLocaleString()}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => updateCartQuantity(item.id, item.quantity - 1, item.isRented)}
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+
+                                    <span className="w-8 text-center text-[#134686]">{item.quantity}</span>
+
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => updateCartQuantity(item.id, item.quantity + 1, item.isRented)}
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+
+                  {/* Summary */}
+                  <Card className="bg-[#FDF4E3] border-[#998767]/30">
+                    <CardContent className="p-6">
+                      <div className="space-y-3 mb-6">
+                        <div className="flex justify-between">
+                          <span>ราคาสินค้า</span>
+                          <span>฿{totalPrice.toLocaleString()}</span>
+                        </div>
+
+                        {totalDeposit > 0 && (
+                          <div className="flex justify-between">
+                            <span>มัดจำ</span>
+                            <span>฿{totalDeposit.toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between">
+                          <span>ค่าจัดส่ง</span>
+                          <span>{totalPrice >= 1000 ? "ฟรี" : "฿50"}</span>
+                        </div>
+
+                        <div className="border-t pt-3 flex justify-between">
+                          <span>ยอดรวมทั้งหมด</span>
+                          <span className="text-[#ED3F27] text-xl">
+                            ฿{(totalPrice + totalDeposit + (totalPrice >= 1000 ? 0 : 50)).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={() => {
+                          cart.forEach((item) => {
+                            if (item.isRented) rentItem(item);
+                          });
+
+                          toast.success("ชำระเงินสำเร็จ!", {
+                            description: "ขอบคุณสำหรับการสั่งซื้อ",
+                          });
+                        }}
+                        className="w-full bg-[#FEB21A] hover:bg-[#e5a015] text-[#134686] py-6"
                       >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M6 6l12 12M18 6L6 18"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
+                        ชำระเงิน
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </>
+          ) : (
+            // RENTAL TAB
+            <div className="space-y-4">
+              {rentals.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-[#998767] mb-4">ยังไม่มีรายการเช่า</p>
+                  <Button 
+                    onClick={() => router.push("/main")}
+                    className="bg-[#134686] hover:bg-[#0f3a6e]"
+                  >
+                    เริ่มช้อปปิ้ง
+                  </Button>
+                </div>
+              ) : (
+                rentals.map((rental) => (
+                  <Card key={rental.id} className="border-[#998767]/20">
+                    <CardHeader>
+                      <CardTitle className="flex justify-between text-[#134686]">
+                        {rental.product.name}
 
-                      {/* Grid 2 แถว: บน (รูป/ข้อมูล/จำนวน), ล่าง (สถานะ) */}
-                      <div className="grid grid-cols-[144px_1fr_auto] sm:grid-cols-[160px_1fr_auto] grid-rows-[auto_auto] items-start gap-x-4 gap-y-2">
-                        {/* รูป — กิน 2 แถว */}
-                        <div className="relative row-span-2 aspect-square w-36 overflow-hidden rounded-lg bg-gray-100 sm:w-40">
-                          <Image
-                            src={it.image}
-                            alt={it.name}
-                            fill
-                            className="object-cover"
-                            sizes="(min-width: 640px) 160px, 144px"
-                            priority={idx < 2}
+                        {rental.depositReturned && (
+                          <Badge className="bg-[#E49D71]">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            คืนมัดจำแล้ว
+                          </Badge>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+
+                    <CardContent>
+                      <div className="flex gap-4">
+                        <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden">
+                          <ImageWithFallback
+                            src={rental.product.image}
+                            alt={rental.product.name}
+                            className="w-full h-full object-cover"
                           />
                         </div>
 
-                        {/* ข้อมูลสินค้า */}
-                        <div className="mr-4 space-y-1">
-                          <h3 className="text-sm text-black font-semibold leading-6">
-                            {it.name}
-                          </h3>
-                          <div className="flex flex-wrap gap-x-2 text-sm text-gray-500">
-                            {it.color && <span>{it.color}</span>}
-                            {it.color && it.size && (
-                              <span className="opacity-50 ">|</span>
-                            )}
-                            {it.size && <span>{it.size}</span>}
+                        <div className="flex-1 text-sm">
+                          <div className="flex justify-between">
+                            <span>วันที่เช่า:</span>
+                            <span>{new Date(rental.rentalDate).toLocaleDateString("th-TH")}</span>
                           </div>
-                          <div className="mt-1 text-sm text-black font-semibold">
-                            ${money(it.price)}
+
+                          {rental.returnDate && (
+                            <div className="flex justify-between">
+                              <span>วันที่คืน:</span>
+                              <span>{new Date(rental.returnDate).toLocaleDateString("th-TH")}</span>
+                            </div>
+                          )}
+
+                          <div className="flex justify-between">
+                            <span>มัดจำที่จ่าย:</span>
+                            <span>฿{rental.depositPaid.toLocaleString()}</span>
                           </div>
-                        </div>
 
-                        {/* จำนวน */}
-                        <label className="relative inline-flex text-black items-center justify-self-end">
-                          <select
-                            value={it.qty}
-                            onChange={(e) => updateQty(it.id, e.target.value)}
-                            className="h-9 min-w-[64px] appearance-none rounded-md border border-gray-300 bg-white px-3 pr-8 text-sm text-gray-800 shadow-sm focus:border-indigo-500 focus:outline-none"
-                          >
-                            {Array.from({ length: 10 }, (_, i) => i + 1).map(
-                              (n) => (
-                                <option key={n} value={n}>
-                                  {n}
-                                </option>
-                              )
-                            )}
-                          </select>
-                          <svg
-                            className="pointer-events-none absolute right-2"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M6 9l6 6 6-6"
-                              stroke="currentColor"
-                              strokeWidth="1.6"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </label>
-
-                        {/* สถานะ — แถวล่าง */}
-                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                          {it.status.type === "in-stock" ? (
-                            <>
-                              <span className="inline-grid h-4 w-4 place-items-center rounded-full bg-green-500/10">
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <path
-                                    d="M20 6L9 17l-5-5"
-                                    stroke="rgb(34 197 94)"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </span>
-                              <span>In stock</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="inline-grid h-4 w-4 place-items-center rounded-full bg-gray-400/15">
-                                <svg
-                                  width="12"
-                                  height="12"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                >
-                                  <circle
-                                    cx="12"
-                                    cy="12"
-                                    r="9"
-                                    stroke="rgb(156 163 175)"
-                                    strokeWidth="2"
-                                  />
-                                  <path
-                                    d="M12 7v5l3 2"
-                                    stroke="rgb(156 163 175)"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
-                              </span>
-                              <span>{it.status.text}</span>
-                            </>
+                          {!rental.depositReturned && !rental.returnDate && (
+                            <Button
+                              onClick={() => returnRental(rental.id)}
+                              className="w-full mt-4 bg-[#E49D71] text-white"
+                            >
+                              คืนสินค้าและรับมัดจำคืน
+                            </Button>
                           )}
                         </div>
                       </div>
-                    </article>
-                  ))}
-
-                  {items.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-black/20 bg-white/50 p-10 text-center text-gray-600">
-                      ตะกร้าของคุณว่างเปล่า —{" "}
-                      <Link
-                        href="/"
-                        className="text-indigo-600 underline underline-offset-2"
-                      >
-                        ไปช้อปต่อ
-                      </Link>
-                    </div>
-                  )}
-                </section>
-
-                {/* RIGHT: สรุปคำสั่งซื้อ */}
-                <aside className="self-start rounded-xl border border-black/10 bg-white p-6 shadow-sm">
-                  <h2 className="text-base text=black font-semibold text-gray-800">
-                    Order summary
-                  </h2>
-
-                  <dl className="mt-4 space-y-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <dt className="text-gray-700">Subtotal</dt>
-                      <dd className="text-black font-medium">${money(subtotal)}</dd>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center text=black gap-1 text-gray-700">
-                        Shipping estimate
-                        <span
-                          title="Flat rate"
-                          className="cursor-help text-gray-400"
-                        >
-                          ?
-                        </span>
-                      </dt>
-                      <dd className="font-medium text-black ">${money(shipping)}</dd>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <dt className="flex items-center gap-1 text-gray-700">
-                        Tax estimate
-                        <span
-                          title={`${(TAX_RATE * 100).toFixed(1)}%`}
-                          className="cursor-help text=black text-gray-400"
-                        >
-                          ?
-                        </span>
-                      </dt>
-                      <dd className="text-black font-medium">${money(tax)}</dd>
-                    </div>
-
-                    <div className="mt-3 border-t border-black/10 pt-4">
-                      <div className="flex items-center justify-between">
-                        <dt className="text-base font-semibold text-gray-900">
-                          Order total
-                        </dt>
-                        <dd className="text-base text-black font-semibold">
-                          ${money(total)}
-                        </dd>
-                      </div>
-                    </div>
-                  </dl>
-
-                  <button
-                    className="mt-6 w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    onClick={() => alert("Proceed to checkout")}
-                  >
-                    Checkout
-                  </button>
-                </aside>
-              </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
-          </main>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
