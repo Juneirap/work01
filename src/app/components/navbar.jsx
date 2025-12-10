@@ -12,9 +12,9 @@ export default function Navbar({ brand = { name: "FASHION SHOP", href: "/" } }) 
 
   const navIcons = [
     { icon: Search, label: "Search", onClick: () => {} },
-    { icon: Heart, label: "Wishlist", onClick: () => {} },
+    { icon: Heart, label: "Wishlist", onClick: () => router.push("/fav") },
     { icon: ShoppingCart, label: "Cart", onClick: () => router.push("/cart") },
-    { icon: BarChart3, label: "Analytics", onClick: () => router.push("/analytics") },
+    { icon: BarChart3, label: "Analytics", onClick: () => router.push("/dashboard") },
   ];
 
   return (

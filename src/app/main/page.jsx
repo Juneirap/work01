@@ -1,11 +1,26 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
+import React, { useState } from 'react';
 import { Shield, Package, RefreshCw, Headphones, CreditCard, Award, Star, Sparkles, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Heart, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/navbar';
+import ProductQuickView from '../components/ProductQuickView';
 
 export default function MainPage() {
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+
+  const handleQuickView = (product) => {
+    setSelectedProduct(product);
+    setIsQuickViewOpen(true);
+  };
+
+  const handleCloseQuickView = () => {
+    setIsQuickViewOpen(false);
+    setTimeout(() => setSelectedProduct(null), 300);
+  };
+
   const categories = [
     { name: 'เสื้อยืด', icon: '👕', color: '#134686' },
     { name: 'เสื้อเชิ้ต', icon: '👔', color: '#E49D71' },
@@ -24,6 +39,7 @@ export default function MainPage() {
       rating: 4.8,
       reviews: 124,
       isNew: true,
+      description: 'เสื้อยืดพรีเมียมทำจากผ้าคอตตอน 100% คุณภาพสูง ผ้านุ่มสวมใส่สบาย เหมาะสำหรับการใส่ในชีวิตประจำวัน ถนอมผิว ระบายอากาศดี',
     },
     {
       id: 2,
@@ -34,6 +50,7 @@ export default function MainPage() {
       rating: 4.6,
       reviews: 89,
       isNew: true,
+      description: 'เสื้อยืดทรงฟิตแบบใหม่ล่าสุด ตัดเย็บอย่างพอดี ใส่สวย ปลายแขนยืดหยุ่น ไม่หรี่ ใส่ไปทำงาน เที่ยว ได้ทั้งวัน',
     },
     {
       id: 3,
@@ -42,6 +59,7 @@ export default function MainPage() {
       image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=500',
       rating: 4.5,
       reviews: 57,
+      description: 'เสื้อยืดลายสกรีนลาย Humble Design ลายทำจากสีย้อมอย่างดี ไม่ลอก ไม่ลาดกระสี หนึ่งชิ้นที่ต้องมี',
     },
     {
       id: 4,
@@ -52,6 +70,7 @@ export default function MainPage() {
       rating: 4.7,
       reviews: 156,
       discount: 15,
+      description: 'เสื้อยืดโอเวอร์ไซส์สไตล์เกาหลี สวมใส่สบายๆ ตัวไม่อึดอัด ผ้านำเข้า ทำให้หน้าหำขาว เป็นเสื้อดีทั่วไป',
     },
     {
       id: 5,
@@ -60,6 +79,7 @@ export default function MainPage() {
       image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=500',
       rating: 4.8,
       reviews: 124,
+      description: 'เสื้อยืดพรีเมียมทำจากผ้าคอตตอน 100% คุณภาพสูง ผ้านุ่มสวมใส่สบาย เหมาะสำหรับการใส่ในชีวิตประจำวัน',
     },
     {
       id: 6,
@@ -69,6 +89,7 @@ export default function MainPage() {
       image: 'https://images.unsplash.com/photo-1581803118522-7b72a50f7e9f?w=500',
       rating: 4.6,
       reviews: 89,
+      description: 'เสื้อยืดทรงฟิตแบบใหม่ล่าสุด ตัดเย็บอย่างพอดี ใส่สวย ปลายแขนยืดหยุ่น ไม่หรี่ ใส่ไปได้ทั้งวัน',
     },
     {
       id: 7,
@@ -78,6 +99,7 @@ export default function MainPage() {
       rating: 4.5,
       reviews: 57,
       isNew: true,
+      description: 'เสื้อยืดลายสกรีนลาย Humble Design ลายทำจากสีย้อมอย่างดี ไม่ลอก ไม่ลาดกระสี หนึ่งชิ้นที่ต้องมี',
     },
     {
       id: 8,
@@ -86,6 +108,7 @@ export default function MainPage() {
       image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=500',
       rating: 4.7,
       reviews: 156,
+      description: 'เสื้อยืดโอเวอร์ไซส์ไซส์สไตล์เกาหลี สวมใส่สบาย ตัวไม่อึดอัด ผ้านำเข้า ทำให้หน้ากุ๊บที่ต้องมี',
     },
   ];
 
@@ -367,7 +390,10 @@ export default function MainPage() {
                   </div>
                   
                   <div className="absolute inset-x-0 bottom-0 opacity-0 group-hover:opacity-100 transition-opacity p-4">
-                    <button className="w-full bg-white text-[#134686] py-2 rounded-lg font-semibold hover:bg-[#134686] hover:text-white transition flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => handleQuickView(product)}
+                      className="w-full bg-white text-[#134686] py-2 rounded-lg font-semibold hover:bg-[#134686] hover:text-white transition flex items-center justify-center gap-2"
+                    >
                       <Eye className="w-4 h-4" />
                       ดูด่วน
                     </button>
@@ -634,6 +660,21 @@ export default function MainPage() {
           </div>
         </div>
       </footer>
+
+      {/* Product Quick View Modal */}
+      <ProductQuickView
+        product={selectedProduct}
+        isOpen={isQuickViewOpen}
+        onClose={handleCloseQuickView}
+        addToCart={(product) => {
+          console.log('Added to cart:', product);
+          setIsQuickViewOpen(false);
+        }}
+        toggleWishlist={(product) => {
+          console.log('Toggled wishlist:', product);
+        }}
+        isInWishlist={() => false}
+      />
     </div>
   );
 }

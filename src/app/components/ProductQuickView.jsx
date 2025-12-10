@@ -1,33 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Heart, ShoppingCart, Sparkles } from 'lucide-react';
 import { Button } from './button';
 import { Badge } from './badge';
 import { toast } from 'sonner';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  discount?: number;
-  isNew?: boolean;
-  isRental?: boolean;
-  deposit?: number;
-  rating?: number;
-  reviews?: number;
-}
-
-interface ProductQuickViewProps {
-  product: Product | null;
-  isOpen: boolean;
-  onClose: () => void;
-  addToCart: (product: Product, isRental?: boolean, rentalDays?: number) => void;
-  toggleWishlist: (product: Product) => void;
-  isInWishlist: (productId: number) => boolean;
-}
 
 export default function ProductQuickView({
   product,
@@ -36,8 +14,12 @@ export default function ProductQuickView({
   addToCart,
   toggleWishlist,
   isInWishlist,
-}: ProductQuickViewProps) {
+}) {
   if (!product) return null;
+
+  const [selectedSize, setSelectedSize] = useState('M');
+  const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const discountedPrice = product.discount
     ? Math.floor(product.price * (1 - product.discount / 100))
@@ -115,7 +97,7 @@ export default function ProductQuickView({
                           <span
                             key={i}
                             className={`text-lg ${
-                              i < Math.floor(product.rating!)
+                              i < Math.floor(product.rating || 0)
                                 ? 'text-[#FEB21A]'
                                 : 'text-gray-300'
                             }`}
@@ -143,6 +125,71 @@ export default function ProductQuickView({
                     )}
                   </div>
 
+                  {/* Description */}
+                  {product.description && (
+                    <p className="text-sm text-[#998767] mb-6 leading-relaxed">
+                      {product.description}
+                    </p>
+                  )}
+
+                  {/* Product Info */}
+                  <div className="space-y-2 mb-6 text-sm text-[#998767]">
+                    <div className="flex items-center gap-2">
+                      <span>📦</span>
+                      <span>หมวดหมู่: เสื้อผ้า</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>📍</span>
+                      <span>เพศ: ชายหญิง</span>
+                    </div>
+                  </div>
+
+                  {/* Size Selection */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-[#134686] mb-2">
+                      ขนาด
+                    </label>
+                    <div className="flex gap-2">
+                      {['S', 'M', 'L', 'XL'].map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`w-10 h-10 rounded-lg font-semibold transition ${
+                            selectedSize === size
+                              ? 'bg-[#134686] text-white'
+                              : 'border-2 border-[#134686] text-[#134686] hover:bg-[#134686]/10'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Quantity */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-[#134686] mb-2">
+                      จำนวน
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-10 h-10 border-2 border-[#134686] rounded-lg flex items-center justify-center text-[#134686] hover:bg-[#134686] hover:text-white transition"
+                      >
+                        −
+                      </button>
+                      <span className="w-8 text-center text-lg font-semibold text-[#134686]">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="w-10 h-10 border-2 border-[#134686] rounded-lg flex items-center justify-center text-[#134686] hover:bg-[#134686] hover:text-white transition"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Rental Info */}
                   {product.isRental && product.deposit && (
                     <p className="text-sm text-[#998767] mb-6">
@@ -165,17 +212,16 @@ export default function ProductQuickView({
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       เพิ่มลงตะกร้า
                     </Button>
-                    <Button
-                      onClick={() => toggleWishlist(product)}
-                      variant="outline"
-                      size="sm"
-                      className="border-[#ED3F27] text-[#ED3F27] hover:bg-[#ED3F27]/10"
+                    <button
+                      onClick={() => setIsFavorite(!isFavorite)}
+                      className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center transition ${
+                        isFavorite
+                          ? 'bg-[#ED3F27] border-[#ED3F27] text-white'
+                          : 'border-[#134686] text-[#134686] hover:bg-[#134686]/10'
+                      }`}
                     >
-                      <Heart
-                        className="h-5 w-5"
-                        fill={isInWishlist(product.id) ? '#ED3F27' : 'none'}
-                      />
-                    </Button>
+                      <Heart className={`h-5 w-5 ${isFavorite ? 'fill-white' : ''}`} />
+                    </button>
                   </div>
                   {product.isRental && (
                     <Button
