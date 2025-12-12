@@ -1,15 +1,22 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Shield, Package, RefreshCw, Headphones, CreditCard, Award, Star, Sparkles, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Heart, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/navbar';
 import ProductQuickView from '../components/ProductQuickView';
+import { WishlistContext } from '@/lib/WishlistContext';
+import { CartContext } from '@/lib/CartContext';
 
 export default function MainPage() {
+  const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
+  const { addToCart } = useContext(CartContext);
+  const router = useRouter();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [filterType, setFilterType] = useState('ทั้งหมด');
 
   const handleQuickView = (product) => {
     setSelectedProduct(product);
@@ -331,15 +338,35 @@ export default function MainPage() {
       <div className="py-8 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <button className="px-8 py-3 bg-[#134686] text-white rounded-lg font-semibold hover:bg-[#0f3a6e] transition">
-              ทั้งหมด
-            </button>
-            <button className="px-8 py-3 border-2 border-[#FEB21A] text-[#134686] rounded-lg font-semibold hover:bg-[#FEB21A]/10 transition">
-              สินค้าใหม่
-            </button>
-            <button className="px-8 py-3 border-2 border-[#ED3F27] text-[#ED3F27] rounded-lg font-semibold hover:bg-[#ED3F27]/10 transition">
-              ลดราคา
-            </button>
+            {['ทั้งหมด', 'สินค้าใหม่', 'สอนราคา'].map((type) => {
+              let buttonClass = '';
+              if (filterType === type) {
+                if (type === 'ทั้งหมด') {
+                  buttonClass = 'bg-[#134686] text-white';
+                } else if (type === 'สินค้าใหม่') {
+                  buttonClass = 'bg-[#FEB21A] text-[#134686]';
+                } else if (type === 'สอนราคา') {
+                  buttonClass = 'bg-[#ED3F27] text-white';
+                }
+              } else {
+                if (type === 'ทั้งหมด') {
+                  buttonClass = 'border-2 border-[#134686] text-[#134686] hover:bg-[#134686]/10';
+                } else if (type === 'สินค้าใหม่') {
+                  buttonClass = 'border-2 border-[#FEB21A] text-[#FEB21A] hover:bg-[#FEB21A]/10';
+                } else if (type === 'สอนราคา') {
+                  buttonClass = 'border-2 border-[#ED3F27] text-[#ED3F27] hover:bg-[#ED3F27]/10';
+                }
+              }
+              return (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-8 py-3 rounded-lg font-semibold transition ${buttonClass}`}
+                >
+                  {type === 'สอนราคา' ? 'ลดราคา' : type}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -355,8 +382,16 @@ export default function MainPage() {
           >
             สินค้าแนะนำ
           </motion.h2>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product, index) => (
+            {products
+              .filter((product) => {
+                if (filterType === 'ทั้งหมด') return true;
+                if (filterType === 'สินค้าใหม่') return product.isNew;
+                if (filterType === 'สอนราคา') return product.discount;
+                return true;
+              })
+              .map((product, index) => (
               <motion.div
                 key={product.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -384,8 +419,15 @@ export default function MainPage() {
                   
                   {/* Hover Actions */}
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#FEB21A] hover:text-white transition mb-2">
-                      <Heart className="w-5 h-5" />
+                    <button
+                      onClick={() => toggleWishlist(product)}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition mb-2 ${
+                        isInWishlist(product.id)
+                          ? 'bg-[#FEB21A] text-white'
+                          : 'bg-white text-[#ED3F27] hover:bg-[#FEB21A] hover:text-white'
+                      }`}
+                    >
+                      <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'fill-white' : ''}`} />
                     </button>
                   </div>
                   
@@ -425,7 +467,21 @@ export default function MainPage() {
                       {product.rating} ({product.reviews})
                     </span>
                   </div>
-                  <button className="w-full bg-[#134686] text-white py-2 rounded-lg font-semibold hover:bg-[#0f3a6e] transition">
+                  <button 
+                    onClick={() => {
+                      addToCart(product);
+                      // แสดง notification แทน redirect
+                      const notification = document.createElement('div');
+                      notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+                      notification.innerHTML = '✓ เพิ่มสินค้าลงตะกร้าแล้ว';
+                      document.body.appendChild(notification);
+                      setTimeout(() => {
+                        notification.style.opacity = '0';
+                        notification.style.transition = 'opacity 0.3s';
+                        setTimeout(() => notification.remove(), 300);
+                      }, 2000);
+                    }}
+                    className="w-full bg-[#134686] text-white py-2 rounded-lg font-semibold hover:bg-[#0f3a6e] transition">
                     เพิ่มลงตะกร้า
                   </button>
                 </div>
@@ -670,10 +726,8 @@ export default function MainPage() {
           console.log('Added to cart:', product);
           setIsQuickViewOpen(false);
         }}
-        toggleWishlist={(product) => {
-          console.log('Toggled wishlist:', product);
-        }}
-        isInWishlist={() => false}
+        toggleWishlist={toggleWishlist}
+        isInWishlist={isInWishlist}
       />
     </div>
   );

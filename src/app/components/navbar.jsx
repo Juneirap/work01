@@ -1,20 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, Search, Heart, ShoppingCart, BarChart3 } from "lucide-react";
+import { Menu, Search, Heart, ShoppingCart, BarChart3, X } from "lucide-react";
 import Sidebar from "./sidebar";
+import { WishlistContext } from "@/lib/WishlistContext";
+import { CartContext } from "@/lib/CartContext";
 
 export default function Navbar({ brand = { name: "FASHION SHOP", href: "/" } }) {
   const router = useRouter();
+  const { wishlist } = useContext(WishlistContext);
+  const { cart } = useContext(CartContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const wishlistCount = wishlist.length > 99 ? "99+" : wishlist.length;
+  const cartCount = cart.length > 99 ? "99+" : cart.length;
 
   const navIcons = [
-    { icon: Search, label: "Search", onClick: () => {} },
+    { icon: Search, label: "Search", onClick: () => setSearchOpen(true) },
     { icon: Heart, label: "Wishlist", onClick: () => router.push("/fav") },
     { icon: ShoppingCart, label: "Cart", onClick: () => router.push("/cart") },
-    { icon: BarChart3, label: "Analytics", onClick: () => router.push("/dashboard") },
+    { icon: BarChart3, label: "Analytics", onClick: () => router.push("/Dashboard") },
   ];
 
   return (
@@ -54,10 +63,20 @@ export default function Navbar({ brand = { name: "FASHION SHOP", href: "/" } }) 
                 <button
                   key={label}
                   onClick={onClick}
-                  className="text-[#134686] hover:text-[#998767] transition p-2"
+                  className="text-[#134686] hover:text-[#998767] transition p-2 relative"
                   aria-label={label}
                 >
                   <Icon className="h-5 w-5" />
+                  {label === "Wishlist" && wishlist.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#ED3F27] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                  {label === "Cart" && cart.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#ED3F27] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
                 </button>
               ))}
 
@@ -75,6 +94,46 @@ export default function Navbar({ brand = { name: "FASHION SHOP", href: "/" } }) 
         {/* Bottom Gradient Border */}
         <div className="h-1 bg-gradient-to-r from-[#134686] to-[#E49D71]" />
       </nav>
+
+      {/* Search Modal */}
+      {searchOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-50 flex items-start justify-center pt-20"
+          onClick={() => setSearchOpen(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Search Input */}
+            <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+              <Search className="w-5 h-5 text-[#998767]" />
+              <input
+                type="text"
+                placeholder="ค้นหาสินค้า..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 outline-none text-[#134686] placeholder-[#998767] text-lg"
+                autoFocus
+              />
+              <button
+                onClick={() => setSearchOpen(false)}
+                className="text-[#ED3F27] hover:text-[#ED3F27]/70 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Search Results / Empty State */}
+            <div className="p-12 text-center">
+              <div className="flex justify-center mb-4">
+                <Search className="w-16 h-16 text-gray-300" />
+              </div>
+              <p className="text-[#998767] text-lg">พิมพ์เพื่อค้นหาสินค้า...</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

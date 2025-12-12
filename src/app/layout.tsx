@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Kanit, Noto_Sans_Thai } from "next/font/google";
+import { WishlistProvider } from "../lib/WishlistContext";
+import { CartProvider } from "../lib/CartContext";
 
 const heading = Kanit({
   subsets: ["thai", "latin"],
@@ -26,7 +28,11 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="th" className={`${heading.variable} ${body.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <CartProvider>
+          <WishlistProvider>{children}</WishlistProvider>
+        </CartProvider>
+      </body>
     </html>
   );
 }

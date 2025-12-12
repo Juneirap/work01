@@ -19,7 +19,7 @@ export default function ProductQuickView({
 
   const [selectedSize, setSelectedSize] = useState('M');
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(() => isInWishlist?.(product.id) ?? false);
 
   const discountedPrice = product.discount
     ? Math.floor(product.price * (1 - product.discount / 100))
@@ -213,10 +213,13 @@ export default function ProductQuickView({
                       เพิ่มลงตะกร้า
                     </Button>
                     <button
-                      onClick={() => setIsFavorite(!isFavorite)}
+                      onClick={() => {
+                        toggleWishlist(product);
+                        setIsFavorite(!isFavorite);
+                      }}
                       className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center transition ${
                         isFavorite
-                          ? 'bg-[#ED3F27] border-[#ED3F27] text-white'
+                          ? 'bg-[#FEB21A] border-[#FEB21A] text-white'
                           : 'border-[#134686] text-[#134686] hover:bg-[#134686]/10'
                       }`}
                     >
