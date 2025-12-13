@@ -4,7 +4,6 @@
 import React, { useState, useContext } from 'react';
 import { Shield, Package, RefreshCw, Headphones, CreditCard, Award, Star, Sparkles, Mail, Phone, MapPin, Facebook, Instagram, Twitter, Heart, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
 import Navbar from '../components/navbar';
 import ProductQuickView from '../components/ProductQuickView';
 import { WishlistContext } from '@/lib/WishlistContext';
@@ -13,7 +12,6 @@ import { CartContext } from '@/lib/CartContext';
 export default function MainPage() {
   const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
   const { addToCart } = useContext(CartContext);
-  const router = useRouter();
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [filterType, setFilterType] = useState('ทั้งหมด');
@@ -722,8 +720,8 @@ export default function MainPage() {
         product={selectedProduct}
         isOpen={isQuickViewOpen}
         onClose={handleCloseQuickView}
-        addToCart={(product) => {
-          console.log('Added to cart:', product);
+        addToCart={(product, quantity) => {
+          addToCart(product, quantity);
           setIsQuickViewOpen(false);
         }}
         toggleWishlist={toggleWishlist}

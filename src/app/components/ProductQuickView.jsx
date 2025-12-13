@@ -203,7 +203,7 @@ export default function ProductQuickView({
                   <div className="flex gap-3">
                     <Button
                       onClick={() => {
-                        addToCart(product);
+                        addToCart({ ...product, size: selectedSize }, quantity);
                         toast.success('เพิ่มลงตะกร้าแล้ว!');
                         onClose();
                       }}
@@ -229,7 +229,7 @@ export default function ProductQuickView({
                   {product.isRental && (
                     <Button
                       onClick={() => {
-                        addToCart(product, true, 3);
+                        addToCart({ ...product, isRental: true, size: selectedSize }, quantity);
                         toast.success('เพิ่มการเช่าลงตะกร้าแล้ว!');
                         onClose();
                       }}

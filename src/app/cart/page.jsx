@@ -2,8 +2,9 @@
 
 import React, { useContext, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trash2, Plus, Minus } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "../components/navbar";
 import { CartContext } from "@/lib/CartContext";
 
@@ -86,9 +87,11 @@ export default function CartPage() {
                       <div key={item.id} className="bg-white rounded-xl p-4 shadow-md">
                         <div className="flex gap-4">
                           <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                            <img
+                            <Image
                               src={item.image}
                               alt={item.name}
+                              width={96}
+                              height={96}
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -104,7 +107,7 @@ export default function CartPage() {
                                 onClick={() => removeFromCart(item.id)}
                                 className="text-red-500 hover:text-red-700 text-xl"
                               >
-                                🗑️
+                                <Trash2 className="h-5 w-5" aria-hidden="true" />
                               </button>
                             </div>
 
